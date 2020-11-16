@@ -2,27 +2,26 @@
 {{- $schemaTable := .Table.Name | .SchemaTable}}
 
 // UpdateSQL updates rows with raw SET
-func (q {{$alias.DownSingular}}Query) UpdateSQL(set string, {{if .NoContext}}exec boil.Executor{{else}}ctx context.Context, exec boil.ContextExecutor{{end}}) {{if .NoRowsAffected}}error{{else}}(int64, error){{end -}} {
+func (q {{$alias.DownSingular}}Query) UpdateSQL({{if .NoContext}}exec boil.Executor{{else}}ctx context.Context, exec boil.ContextExecutor{{end}}, set string, args ...interface{}) {{if .NoRowsAffected}}error{{else}}(int64, error){{end -}} {
     where, whereArgs := queries.WhereClause(q.Query, 1)
 
-	var sql string
-	if where == "" {
-		sql = fmt.Sprintf("UPDATE {{$schemaTable}} SET %s", set)
-	}else {
-		sql = fmt.Sprintf("UPDATE {{$schemaTable}} SET %s WHERE %s", set, where)
-	}
+	sql := fmt.Sprintf("UPDATE {{$schemaTable}} SET %s %s", set, where)
+
+	if len(whereArgs) != 0 {
+        args = append(args, whereArgs...)
+    }
 
 	{{if .NoRowsAffected -}}
 		{{if .NoContext -}}
-	_, err := exec.Exec(sql, whereArgs...)
+	_, err := exec.Exec(sql, args...)
 		{{else -}}
-	_, err := exec.ExecContext(ctx, sql, whereArgs...)
+	_, err := exec.ExecContext(ctx, sql, args...)
 		{{end -}}
 	{{else -}}
 		{{if .NoContext -}}
-	result, err := exec.Exec(sql, whereArgs...)
+	result, err := exec.Exec(sql, args...)
 		{{else -}}
-	result, err := exec.ExecContext(ctx, sql, whereArgs...)
+	result, err := exec.ExecContext(ctx, sql, args...)
 		{{end -}}
 	{{end -}}
 	if err != nil {
