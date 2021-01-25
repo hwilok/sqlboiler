@@ -65,10 +65,10 @@ func ({{$ltable.DownSingular}}L) Load{{$rel.Foreign}}({{if $.NoContext}}e boil.E
 	}
 
 	query := NewQuery(
-	    qm.From(`{{if $.Dialect.UseSchema}}{{$.Schema}}.{{end}}{{.ForeignTable}}`),
-	    qm.WhereIn(`{{if $.Dialect.UseSchema}}{{$.Schema}}.{{end}}{{.ForeignTable}}.{{.ForeignColumn}} in ?`, args...),
+	    qm.From(`{{.ForeignTable | $.SchemaTable}}`),
+	    qm.WhereIn(`{{.ForeignTable | $.SchemaTable}}.{{.ForeignColumn}} in ?`, args...),
 	    {{if and $.AddSoftDeletes $canSoftDelete -}}
-	    qmhelper.WhereIsNull(`{{if $.Dialect.UseSchema}}{{$.Schema}}.{{end}}{{.ForeignTable}}.deleted_at`),
+	    qmhelper.WhereIsNull(`{{.ForeignTable | $.SchemaTable}}.deleted_at`),
 	    {{- end}}
     )
 	if mods != nil {

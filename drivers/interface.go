@@ -4,6 +4,7 @@ package drivers
 
 import (
 	"sort"
+	"strings"
 
 	"github.com/friendsofgo/errors"
 	"github.com/volatiletech/sqlboiler/v4/importers"
@@ -79,43 +80,61 @@ type Constructor interface {
 
 // Tables returns the metadata for all tables, minus the tables
 // specified in the blacklist.
-func Tables(c Constructor, schema string, whitelist, blacklist []string) ([]Table, error) {
-	var err error
+func Tables(c Constructor, schemaMany string, whitelist, blacklist []string) ([]Table, error) {
+	var schemas []string
 
-	names, err := c.TableNames(schema, whitelist, blacklist)
-	if err != nil {
-		return nil, errors.Wrap(err, "unable to get table names")
+	if strings.Index(schemaMany, ",") > -1 {
+		schemas = strings.Split(schemaMany, ",")
+	} else {
+		schemas = []string{schemaMany}
 	}
 
-	sort.Strings(names)
-
 	var tables []Table
-	for _, name := range names {
-		t := Table{
-			Name: name,
+
+	for k, schema := range schemas {
+		names, err := c.TableNames(schema, whitelist, blacklist)
+		if err != nil {
+			return nil, errors.Wrap(err, "unable to get table names")
 		}
 
-		if t.Columns, err = c.Columns(schema, name, whitelist, blacklist); err != nil {
-			return nil, errors.Wrapf(err, "unable to fetch table column info (%s)", name)
+		sort.Strings(names)
+
+		for _, name := range names {
+			t := Table{
+				Name:       name,
+				SchemaName: schema,
+			}
+
+			if k > 0 {
+				for _, t1 := range tables {
+					if t1.Name == name && t1.SchemaName != schema {
+						return nil, errors.Errorf("detected same table in multiple schemas (%s)", t1.Name)
+					}
+				}
+			}
+
+			if t.Columns, err = c.Columns(schema, name, whitelist, blacklist); err != nil {
+				return nil, errors.Wrapf(err, "unable to fetch table column info (%s)", name)
+			}
+
+			for i, col := range t.Columns {
+				t.Columns[i] = c.TranslateColumnType(col)
+			}
+
+			if t.PKey, err = c.PrimaryKeyInfo(schema, name); err != nil {
+				return nil, errors.Wrapf(err, "unable to fetch table pkey info (%s)", name)
+			}
+
+			if t.FKeys, err = c.ForeignKeyInfo(schema, name); err != nil {
+				return nil, errors.Wrapf(err, "unable to fetch table fkey info (%s)", name)
+			}
+
+			filterForeignKeys(&t, whitelist, blacklist)
+
+			setIsJoinTable(&t)
+
+			tables = append(tables, t)
 		}
-
-		for i, col := range t.Columns {
-			t.Columns[i] = c.TranslateColumnType(col)
-		}
-
-		if t.PKey, err = c.PrimaryKeyInfo(schema, name); err != nil {
-			return nil, errors.Wrapf(err, "unable to fetch table pkey info (%s)", name)
-		}
-
-		if t.FKeys, err = c.ForeignKeyInfo(schema, name); err != nil {
-			return nil, errors.Wrapf(err, "unable to fetch table fkey info (%s)", name)
-		}
-
-		filterForeignKeys(&t, whitelist, blacklist)
-
-		setIsJoinTable(&t)
-
-		tables = append(tables, t)
 	}
 
 	// Relationships have a dependency on foreign key nullability.
@@ -172,11 +191,13 @@ func setForeignKeyConstraints(t *Table, tables []Table) {
 		localColumn := t.GetColumn(fkey.Column)
 		foreignTable := GetTable(tables, fkey.ForeignTable)
 		foreignColumn := foreignTable.GetColumn(fkey.ForeignColumn)
+		foreignSchema := foreignTable.SchemaName
 
 		t.FKeys[i].Nullable = localColumn.Nullable
 		t.FKeys[i].Unique = localColumn.Unique
 		t.FKeys[i].ForeignColumnNullable = foreignColumn.Nullable
 		t.FKeys[i].ForeignColumnUnique = foreignColumn.Unique
+		t.FKeys[i].ForeignSchema = foreignSchema
 	}
 }
 

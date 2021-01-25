@@ -75,7 +75,16 @@ func (t templateData) Quotes(s string) string {
 }
 
 func (t templateData) SchemaTable(table string) string {
-	return strmangle.SchemaTable(t.LQ, t.RQ, t.Dialect.UseSchema, t.Schema, table)
+	schema := t.Schema
+	if t.Dialect.UseSchema {
+		for _, tableObj := range t.Tables {
+			if tableObj.Name == table {
+				schema = tableObj.SchemaName
+				break
+			}
+		}
+	}
+	return strmangle.SchemaTable(t.LQ, t.RQ, t.Dialect.UseSchema, schema, table)
 }
 
 type templateList struct {

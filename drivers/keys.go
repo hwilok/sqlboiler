@@ -16,6 +16,7 @@ type ForeignKey struct {
 	Nullable bool   `json:"nullable"`
 	Unique   bool   `json:"unique"`
 
+	ForeignSchema         string `json:"foreign_schema"`
 	ForeignTable          string `json:"foreign_table"`
 	ForeignColumn         string `json:"foreign_column"`
 	ForeignColumnNullable bool   `json:"foreign_column_nullable"`
