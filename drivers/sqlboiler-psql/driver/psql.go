@@ -443,7 +443,7 @@ func (p *PostgresDriver) TranslateColumnType(c drivers.Column) drivers.Column {
 			c.Type = "null.Float64"
 		case "real":
 			c.Type = "null.Float32"
-		case "bit", "interval", "bit varying", "character", "money", "character varying", "cidr", "inet", "macaddr", "text", "uuid", "xml":
+		case "bit", "interval", "bit varying", "character", "money", "character varying", "macaddr", "text", "uuid", "xml":
 			c.Type = "null.String"
 		case `"char"`:
 			c.Type = "null.Byte"
@@ -469,6 +469,8 @@ func (p *PostgresDriver) TranslateColumnType(c drivers.Column) drivers.Column {
 			c.Type = "pgeo.NullPolygon"
 		case "circle":
 			c.Type = "pgeo.NullCircle"
+		case "inet", "cidr":
+			c.Type = "net.IP"
 		case "ARRAY":
 			var dbType string
 			c.Type, dbType = getArrayType(c)
@@ -504,7 +506,7 @@ func (p *PostgresDriver) TranslateColumnType(c drivers.Column) drivers.Column {
 			c.Type = "float64"
 		case "real":
 			c.Type = "float32"
-		case "bit", "interval", "uuint", "bit varying", "character", "money", "character varying", "cidr", "inet", "macaddr", "text", "uuid", "xml":
+		case "bit", "interval", "uuint", "bit varying", "character", "money", "character varying", "macaddr", "text", "uuid", "xml":
 			c.Type = "string"
 		case `"char"`:
 			c.Type = "types.Byte"
@@ -530,6 +532,8 @@ func (p *PostgresDriver) TranslateColumnType(c drivers.Column) drivers.Column {
 			c.Type = "pgeo.Polygon"
 		case "circle":
 			c.Type = "pgeo.Circle"
+		case "inet", "cidr":
+			c.Type = "net.IP"
 		case "ARRAY":
 			var dbType string
 			c.Type, dbType = getArrayType(c)
@@ -775,6 +779,9 @@ func (p PostgresDriver) Imports() (importers.Collection, error) {
 		},
 		"pgeo.NullCircle": {
 			ThirdParty: importers.List{`"github.com/volatiletech/sqlboiler/v4/types/pgeo"`},
+		},
+		"net.IP": {
+			Standard: importers.List{`"net"`},
 		},
 	}
 
