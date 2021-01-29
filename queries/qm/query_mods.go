@@ -1,6 +1,7 @@
 package qm
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/volatiletech/sqlboiler/v4/queries"
@@ -558,4 +559,61 @@ func For(clause string) QueryMod {
 // constants in Load.
 func Rels(r ...string) string {
 	return strings.Join(r, ".")
+}
+
+func Aggregate(aggregate, column, as string) QueryMod {
+	if as != "" {
+		as = " as " + as
+	}
+	return selectQueryMod{
+		columns: []string{fmt.Sprintf("%s(%s)%s", aggregate, column, as)},
+	}
+}
+
+func Sum(column string) QueryMod {
+	return Aggregate("SUM", column, "")
+}
+
+func SumAs(column, as string) QueryMod {
+	return Aggregate("SUM", column, as)
+}
+
+func Count(column string) QueryMod {
+	return Aggregate("COUNT", column, "")
+}
+
+func CountAs(column, as string) QueryMod {
+	return Aggregate("COUNT", column, as)
+}
+
+type agrExp interface {
+	Expr() string
+}
+
+func AggregateExpr(aggregate string, column agrExp, as string) QueryMod {
+	return selectQueryMod{
+		columns: []string{fmt.Sprintf("%s((%s)) as %s ", aggregate, column.Expr(), as)},
+	}
+}
+
+func SumExpr(column agrExp, as string) QueryMod {
+	return AggregateExpr("SUM", column, as)
+}
+
+func CountExpr(column agrExp, as string) QueryMod {
+	return AggregateExpr("COUNT", column, as)
+}
+
+type fieldWhere interface {
+	GetField() string
+}
+
+func WhereEqColumns(column, column2 fieldWhere) QueryMod {
+	return Where(fmt.Sprintf("%s = %s", column.GetField(), column2.GetField()))
+}
+
+func SelectExpr(column agrExp, as string) QueryMod {
+	return selectQueryMod{
+		columns: []string{fmt.Sprintf("(%s) as %s ", column.Expr(), as)},
+	}
 }
