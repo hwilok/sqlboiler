@@ -57,10 +57,11 @@ func (w {{$name}}) LT(x {{.Type}}) qm.QueryMod { return qmhelper.Where(w.field, 
 func (w {{$name}}) LTE(x {{.Type}}) qm.QueryMod { return qmhelper.Where(w.field, qmhelper.LTE, x) }
 func (w {{$name}}) GT(x {{.Type}}) qm.QueryMod { return qmhelper.Where(w.field, qmhelper.GT, x) }
 func (w {{$name}}) GTE(x {{.Type}}) qm.QueryMod { return qmhelper.Where(w.field, qmhelper.GTE, x) }
-{{- if eq .Type "string" }}
-func (w {{$name}}) LIKE(x {{.Type}}) qm.QueryMod { return qmhelper.WhereQueryMod{ Clause: fmt.Sprintf("%s LIKE ?", w.field), Args:   []interface{}{x} } }
-func (w {{$name}}) LIKE_ALL(x {{.Type}}) qm.QueryMod { return qmhelper.WhereQueryMod{ Clause: fmt.Sprintf("%s LIKE ?", w.field), Args:   []interface{}{ fmt.Sprintf("%%%s%%", x) }	} }
+{{- if eq .Type "string" "null.String" }}
+func (w {{$name}}) LIKE(x string) qm.QueryMod { return qmhelper.WhereQueryMod{ Clause: fmt.Sprintf("%s LIKE ?", w.field), Args:   []interface{}{x} } }
+func (w {{$name}}) LIKE_ALL(x string) qm.QueryMod { return qmhelper.WhereQueryMod{ Clause: fmt.Sprintf("%s LIKE ?", w.field), Args:   []interface{}{ fmt.Sprintf("%%%s%%", x) }	} }
 {{- end}}
+
 {{if isPrimitive .Type -}}
 func (w {{$name}}) IN(slice []{{.Type}}) qm.QueryMod {
   values := make([]interface{}, 0, len(slice))
