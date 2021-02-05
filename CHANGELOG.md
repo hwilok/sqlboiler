@@ -4,12 +4,29 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic
 Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [v4.4.0] - 2020-12-16
+
+### Added
+
+- Add support for a qm.Comment query mod to add comments to queries that will
+  be given to the server for tracing purposes (thanks @Pilatuz)
+
+### Fixed
+
+- Fix compatibility with ANSI_QUOTES in mysql (thanks @alexsander-souza)
+
+## [v4.3.1] - 2020-11-16
+
+### Fixed
+
+- Fix case sensitive table name lookup in psql driver (thanks @severedsea)
+
 ## [v4.3.0] - 2020-11-03
 
 ### Added
 
 - Add comments to generated code from db for psql driver (thanks @vladvelici)
-- Add boil.None() to help with `DO NOTHING` upserst in mssql/mysql
+- Add boil.None() to help with `DO NOTHING` upsert in mssql/mysql
   (thanks @emmanual099)
 
 ### Fixed
