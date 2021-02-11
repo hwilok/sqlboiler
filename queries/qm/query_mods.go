@@ -633,3 +633,14 @@ func SelectExpr(column agrExp, as string) QueryMod {
 		columns: []string{fmt.Sprintf("(%s) as %s ", column.Expr(), as)},
 	}
 }
+
+type NotExistRelsMod struct {
+}
+
+func (qm NotExistRelsMod) Apply(q *queries.Query) {
+
+}
+
+func NotExistRels() QueryMod {
+	return NotExistRelsMod{}
+}
