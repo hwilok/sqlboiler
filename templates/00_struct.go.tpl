@@ -23,6 +23,7 @@ type {{$alias.UpSingular}} struct {
 	{{- if .Table.IsJoinTable -}}
 	{{- else}}
 	R *{{$alias.DownSingular}}R `{{generateTags $.Tags $.RelationTag}}boil:"{{$.RelationTag}}" json:"{{$.RelationTag}}" toml:"{{$.RelationTag}}" yaml:"{{$.RelationTag}}"`
+    C {{$alias.DownSingular}}C  `boil:",bind" json:"c" toml:"c" yaml:"c"`
 	L {{$alias.DownSingular}}L `{{generateIgnoreTags $.Tags}}boil:"-" json:"-" toml:"-" yaml:"-"`
 	{{end -}}
 }
@@ -158,4 +159,19 @@ func (*{{$alias.DownSingular}}R) NewStruct() *{{$alias.DownSingular}}R {
 
 // {{$alias.DownSingular}}L is where Load methods for each relationship are stored.
 type {{$alias.DownSingular}}L struct{}
+
+
+type {{$alias.DownSingular}}C struct {
+	{{range .Table.ToOneRelationships -}}
+	{{- $ftable := $.Aliases.Table .ForeignTable -}}
+	{{- $relAlias := $ftable.Relationship .Name -}}
+	{{$relAlias.Local}} sql.NullInt32 `{{generateTags $.Tags $relAlias.Local}}boil:"{{$relAlias.Local | snake_case}}" json:"{{$relAlias.Local | snake_case}}" toml:"{{$relAlias.Local | snake_case}}" yaml:"{{$relAlias.Local | snake_case}}"`
+	{{end -}}
+
+	{{range .Table.ToManyRelationships -}}
+	{{- $ftable := $.Aliases.Table .ForeignTable -}}
+	{{- $relAlias := $.Aliases.ManyRelationship .ForeignTable .Name .JoinTable .JoinLocalFKeyName -}}
+	{{$relAlias.Local}} sql.NullInt32 `{{generateTags $.Tags $relAlias.Local}}boil:"{{$relAlias.Local | snake_case }}" json:"{{$relAlias.Local | snake_case}}" toml:"{{$relAlias.Local | snake_case}}" yaml:"{{$relAlias.Local | snake_case}}"`
+	{{end -}}{{/* range tomany */}}
+}
 {{end -}}
