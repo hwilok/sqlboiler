@@ -577,6 +577,24 @@ func Rels(r ...string) string {
 	return strings.Join(r, ".")
 }
 
+type selectArgsQueryMod struct {
+	columns []string
+	args    []interface{}
+}
+
+// Apply implements QueryMod.Apply.
+func (qm selectArgsQueryMod) Apply(q *queries.Query) {
+	queries.AppendSelectArgs(q, qm.columns, qm.args...)
+}
+
+// Select specific columns opposed to all columns
+func SelectArgs(columns []string, args ...interface{}) QueryMod {
+	return selectArgsQueryMod{
+		columns: columns,
+		args:    args,
+	}
+}
+
 func Aggregate(aggregate, column, as string) QueryMod {
 	if as != "" {
 		as = " as " + as
@@ -603,12 +621,15 @@ func CountAs(column, as string) QueryMod {
 }
 
 type agrExp interface {
-	Expr() string
+	ExprArgs() (string, []interface{})
 }
 
 func AggregateExpr(aggregate string, column agrExp, as string) QueryMod {
-	return selectQueryMod{
-		columns: []string{fmt.Sprintf("%s((%s)) as %s ", aggregate, column.Expr(), as)},
+	expr, args := column.ExprArgs()
+
+	return selectArgsQueryMod{
+		columns: []string{fmt.Sprintf("%s((%s)) as %s ", aggregate, expr, as)},
+		args:    args,
 	}
 }
 
@@ -629,8 +650,11 @@ func WhereEqColumns(column, column2 fieldWhere) QueryMod {
 }
 
 func SelectExpr(column agrExp, as string) QueryMod {
-	return selectQueryMod{
-		columns: []string{fmt.Sprintf("(%s) as %s ", column.Expr(), as)},
+	expr, args := column.ExprArgs()
+
+	return selectArgsQueryMod{
+		columns: []string{fmt.Sprintf("(%s) as %s ", expr, as)},
+		args:    args,
 	}
 }
 

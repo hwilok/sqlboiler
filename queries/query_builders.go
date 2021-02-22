@@ -64,6 +64,7 @@ func buildSelectQuery(q *Query) (*bytes.Buffer, []interface{}) {
 	}
 
 	hasSelectCols := len(q.selectCols) != 0
+	hasSelectArgsCols := len(q.selectColsArgs) != 0
 	hasJoins := len(q.joins) != 0
 	hasDistinct := q.distinct != ""
 	useIndexPlaceholders := !q.disableIndexPlaceholders && q.dialect.UseIndexPlaceholders
@@ -80,8 +81,36 @@ func buildSelectQuery(q *Query) (*bytes.Buffer, []interface{}) {
 		selectColsWithAs := writeAsStatements(q)
 		// Don't identQuoteSlice - writeAsStatements does this
 		buf.WriteString(strings.Join(selectColsWithAs, ", "))
-	} else if hasSelectCols {
-		buf.WriteString(strings.Join(strmangle.IdentQuoteSlice(q.dialect.LQ, q.dialect.RQ, q.selectCols), ", "))
+	} else if hasSelectCols || hasSelectArgsCols {
+		if hasSelectCols {
+			buf.WriteString(strings.Join(strmangle.IdentQuoteSlice(q.dialect.LQ, q.dialect.RQ, q.selectCols), ", "))
+		}
+
+		if hasSelectArgsCols {
+			if hasSelectCols {
+				buf.WriteString(", ")
+			}
+
+			for k, v := range q.selectColsArgs {
+				argsLen := len(args)
+
+				if k > 0 {
+					buf.WriteString(", ")
+				}
+
+				selStr := strings.Join(strmangle.IdentQuoteSlice(q.dialect.LQ, q.dialect.RQ, v.clause), ", ")
+
+				if useIndexPlaceholders {
+					res, _ := convertQuestionMarks(selStr, argsLen+1)
+					buf.WriteString(res)
+				} else {
+					buf.WriteString(selStr)
+				}
+
+				args = append(args, v.args...)
+			}
+		}
+
 	} else if hasJoins && !q.count {
 		selectColsWithStars := writeStars(q)
 		buf.WriteString(strings.Join(selectColsWithStars, ", "))

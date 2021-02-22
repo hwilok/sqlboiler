@@ -86,6 +86,11 @@ type argClause struct {
 	args   []interface{}
 }
 
+type argSelect struct {
+	clause []string
+	args   []interface{}
+}
+
 type rawSQL struct {
 	sql  string
 	args []interface{}
@@ -398,6 +403,10 @@ func AppendOrderBy(q *Query, clause string, args ...interface{}) {
 // AppendWith on the query.
 func AppendWith(q *Query, clause string, args ...interface{}) {
 	q.withs = append(q.withs, argClause{clause: clause, args: args})
+}
+
+func AppendSelectArgs(q *Query, sel []string, args ...interface{}) {
+	q.selectColsArgs = append(q.selectColsArgs, argSelect{clause: sel, args: args})
 }
 
 func DisableIndexPlaceholders(q *Query) {
