@@ -29,22 +29,25 @@ type Query struct {
 	load     []string
 	loadMods map[string]Applicator
 
-	delete     bool
-	update     map[string]interface{}
-	withs      []argClause
-	selectCols []string
-	count      bool
-	from       []string
-	joins      []join
-	where      []where
-	groupBy    []string
-	orderBy    []argClause
-	having     []argClause
-	limit      int
-	offset     int
-	forlock    string
-	distinct   string
-	comment    string
+	delete         bool
+	update         map[string]interface{}
+	withs          []argClause
+	selectCols     []string
+	selectColsArgs []argSelect
+	count          bool
+	from           []string
+	joins          []join
+	where          []where
+	groupBy        []string
+	orderBy        []argClause
+	having         []argClause
+	limit          int
+	offset         int
+	forlock        string
+	distinct       string
+	comment        string
+
+	disableIndexPlaceholders bool
 }
 
 // Applicator exists only to allow
@@ -395,4 +398,8 @@ func AppendOrderBy(q *Query, clause string, args ...interface{}) {
 // AppendWith on the query.
 func AppendWith(q *Query, clause string, args ...interface{}) {
 	q.withs = append(q.withs, argClause{clause: clause, args: args})
+}
+
+func DisableIndexPlaceholders(q *Query) {
+	q.disableIndexPlaceholders = true
 }

@@ -6,6 +6,7 @@ func (q {{$alias.DownSingular}}Query) Expr() string {
 }
 
 func (q {{$alias.DownSingular}}Query) ExprArgs() (string, []interface{}) {
+    queries.DisableIndexPlaceholders(q.Query)
     s, args := queries.BuildQuery(q.Query)
     return s[:len(s)-1], args
 }

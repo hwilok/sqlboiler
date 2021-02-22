@@ -54,6 +54,7 @@ var {{$alias.UpSingular}}RelsWhere = struct {
                 }
                 qSub := {{$ftable.UpPlural}}(queryMods...)
 
+                queries.DisableIndexPlaceholders(qSub.Query)
                 res, args := queries.BuildQuery(qSub.Query)
 
                 qm.Apply(q, qm.Where(fmt.Sprintf("%s(%s)", hasFn, res[:len(res) - 1]), args ...))
@@ -91,6 +92,7 @@ var {{$alias.UpSingular}}RelsWhere = struct {
                 }
                 qSub := {{$ftable.UpPlural}}(queryMods...)
 
+                queries.DisableIndexPlaceholders(qSub.Query)
                 res, args := queries.BuildQuery(qSub.Query)
 
                 qm.Apply(q, qm.Where(fmt.Sprintf("%s(%s)", hasFn, res[:len(res) - 1]), args ...))
@@ -131,8 +133,8 @@ var {{$alias.UpSingular}}RelsWhere = struct {
 
                     qSub := {{$ftable.UpPlural}}(queryMods...)
 
+                    queries.DisableIndexPlaceholders(qSub.Query)
                     res, args := queries.BuildQuery(qSub.Query)
-
 
                     qm.Apply(q, qm.Where(fmt.Sprintf("%s(%s)", hasFn, res[:len(res) - 1]), args ...))
                 }

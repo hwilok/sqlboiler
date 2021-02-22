@@ -66,6 +66,7 @@ func buildSelectQuery(q *Query) (*bytes.Buffer, []interface{}) {
 	hasSelectCols := len(q.selectCols) != 0
 	hasJoins := len(q.joins) != 0
 	hasDistinct := q.distinct != ""
+	useIndexPlaceholders := !q.disableIndexPlaceholders && q.dialect.UseIndexPlaceholders
 	if hasDistinct {
 		buf.WriteString("DISTINCT ")
 		if q.count {
@@ -114,7 +115,7 @@ func buildSelectQuery(q *Query) (*bytes.Buffer, []interface{}) {
 			args = append(args, j.args...)
 		}
 		var resp string
-		if q.dialect.UseIndexPlaceholders {
+		if useIndexPlaceholders {
 			resp, _ = convertQuestionMarks(joinBuf.String(), argsLen+1)
 		} else {
 			resp = joinBuf.String()
@@ -340,6 +341,7 @@ func whereClause(q *Query, startAt int) (string, []interface{}) {
 	}
 
 	manualParens := false
+	useIndexPlaceholders := !q.disableIndexPlaceholders && q.dialect.UseIndexPlaceholders
 ManualParen:
 	for _, w := range q.where {
 		switch w.kind {
@@ -371,7 +373,7 @@ ManualParen:
 			if !manualParens {
 				buf.WriteByte('(')
 			}
-			if q.dialect.UseIndexPlaceholders {
+			if useIndexPlaceholders {
 				replaced, n := convertQuestionMarks(where.clause, startAt)
 				buf.WriteString(replaced)
 				startAt += n
@@ -416,7 +418,7 @@ ManualParen:
 			// column name side, however if this case is being hit then the regexp
 			// probably needs adjustment, or the user is passing in invalid clauses.
 			if matches == nil {
-				clause, count := convertInQuestionMarks(q.dialect.UseIndexPlaceholders, where.clause, startAt, 1, ln)
+				clause, count := convertInQuestionMarks(useIndexPlaceholders, where.clause, startAt, 1, ln)
 				if !manualParens {
 					buf.WriteByte('(')
 				}
@@ -440,7 +442,7 @@ ManualParen:
 
 			var leftClause string
 			var leftCount int
-			if q.dialect.UseIndexPlaceholders {
+			if useIndexPlaceholders {
 				leftClause, leftCount = convertQuestionMarks(strings.Join(cols, ","), startAt)
 			} else {
 				// Count the number of cols that are question marks, so we know
@@ -452,7 +454,7 @@ ManualParen:
 				}
 				leftClause = strings.Join(cols, ",")
 			}
-			rightClause, rightCount := convertInQuestionMarks(q.dialect.UseIndexPlaceholders, rightSide, startAt+leftCount, groupAt, ln-leftCount)
+			rightClause, rightCount := convertInQuestionMarks(useIndexPlaceholders, rightSide, startAt+leftCount, groupAt, ln-leftCount)
 			if !manualParens {
 				buf.WriteByte('(')
 			}

@@ -8,6 +8,6 @@ func {{$alias.UpSingular}}GetAllColumns() []string {
 {{- $colsPrefix := prefixStringSlice $alias.DownSingular (prefixStringSlice "." $cols) }}
 {{- $colsSchema := .Table.Columns | columnNames | prefixStringSlice (print $schemaTable ".") }}
 
-func {{$alias.UpSingular}}SelectAllColumns() qm.QueryMod {
+func {{$alias.UpSingular}}SelectAllColumnsAs() qm.QueryMod {
     return qm.Select( {{ joinSlices " as " $colsSchema $colsPrefix | stringMap .StringFuncs.quoteWrap | join ", " }} )
 }
