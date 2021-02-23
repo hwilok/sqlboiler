@@ -23,7 +23,7 @@ type {{$alias.UpSingular}} struct {
 	{{- if .Table.IsJoinTable -}}
 	{{- else}}
 	R *{{$alias.DownSingular}}R `{{generateTags $.Tags $.RelationTag}}boil:"{{$.RelationTag}}" json:"{{$.RelationTag}}" toml:"{{$.RelationTag}}" yaml:"{{$.RelationTag}}"`
-    C {{$alias.DownSingular}}C  `boil:",bind" json:"c" toml:"c" yaml:"c"`
+    C *{{$alias.DownSingular}}C  `boil:",bind" json:"c" toml:"c" yaml:"c"`
 	L {{$alias.DownSingular}}L `{{generateIgnoreTags $.Tags}}boil:"-" json:"-" toml:"-" yaml:"-"`
 	{{end -}}
 }
