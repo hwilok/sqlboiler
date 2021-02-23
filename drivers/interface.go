@@ -78,6 +78,10 @@ type Constructor interface {
 	TranslateColumnType(Column) Column
 }
 
+type ConstructorComment interface {
+	TableComment(schema string, tableName string) (string, error)
+}
+
 // Tables returns the metadata for all tables, minus the tables
 // specified in the blacklist.
 func Tables(c Constructor, schemaMany string, whitelist, blacklist []string) ([]Table, error) {
@@ -103,6 +107,12 @@ func Tables(c Constructor, schemaMany string, whitelist, blacklist []string) ([]
 			t := Table{
 				Name:       name,
 				SchemaName: schema,
+			}
+
+			if cc, ok := c.(ConstructorComment); ok {
+				if t.Comment, err = cc.TableComment(schema, name); err != nil {
+					return nil, errors.Wrapf(err, "unable to fetch table comment info (%s)", name)
+				}
 			}
 
 			if k > 0 {

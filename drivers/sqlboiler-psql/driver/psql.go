@@ -180,6 +180,21 @@ func (p *PostgresDriver) TableNames(schema string, whitelist, blacklist []string
 	return names, nil
 }
 
+func (p *PostgresDriver) TableComment(schema string, tableName string) (string, error) {
+	var comment sql.NullString
+
+	query := fmt.Sprintf(`select obj_description('%s.%s'::regclass)`, schema, tableName)
+
+	row := p.conn.QueryRow(query)
+	err := row.Scan(&comment)
+
+	if err != nil && err != sql.ErrNoRows {
+		return "", err
+	}
+
+	return comment.String, nil
+}
+
 // Columns takes a table name and attempts to retrieve the table information
 // from the database information_schema.columns. It retrieves the column names
 // and column types and returns those as a []Column after TranslateColumnType()
