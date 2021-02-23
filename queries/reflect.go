@@ -343,6 +343,10 @@ func ptrFromMapping(val reflect.Value, mapping uint64, addressOf bool) reflect.V
 
 		val = val.Field(int(v))
 		if val.Kind() == reflect.Ptr {
+			if val.IsNil() {
+				v := reflect.New(val.Type().Elem())
+				val.Set(v)
+			}
 			val = reflect.Indirect(val)
 		}
 	}
