@@ -173,5 +173,10 @@ type {{$alias.DownSingular}}C struct {
 	{{- $relAlias := $.Aliases.ManyRelationship .ForeignTable .Name .JoinTable .JoinLocalFKeyName -}}
 	{{$relAlias.Local}} sql.NullInt32 `{{generateTags $.Tags $relAlias.Local}}boil:"{{$relAlias.Local | snake_case }}" json:"{{$relAlias.Local | snake_case}}" toml:"{{$relAlias.Local | snake_case}}" yaml:"{{$relAlias.Local | snake_case}}"`
 	{{end -}}{{/* range tomany */}}
+
+
+	{{ range getAdditionalColumns .Table -}}
+	{{ .Name }} {{ .Type }} `{{generateTags $.Tags .Name | snake_case}}boil:"{{.Name | snake_case }}" json:"{{.Name | snake_case}}" toml:"{{.Name | snake_case}}" yaml:"{{.Name | snake_case}}"`
+	{{end -}}
 }
 {{end -}}

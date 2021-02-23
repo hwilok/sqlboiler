@@ -327,4 +327,5 @@ var templateFunctions = template.FuncMap{
 	"columnNames":            drivers.ColumnNames,
 	"columnDBTypes":          drivers.ColumnDBTypes,
 	"getTable":               drivers.GetTable,
+	"getAdditionalColumns":   drivers.GetAdditionalColumns,
 }

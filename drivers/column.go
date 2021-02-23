@@ -1,6 +1,7 @@
 package drivers
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/volatiletech/strmangle"
@@ -94,6 +95,34 @@ func FilterColumnsByEnum(columns []Column) []Column {
 	for _, c := range columns {
 		if strings.HasPrefix(c.DBType, "enum") {
 			cols = append(cols, c)
+		}
+	}
+
+	return cols
+}
+
+func GetAdditionalColumns(t Table) []Column {
+	var cols []Column
+
+	if t.Comment == "" {
+		return []Column{}
+	}
+
+	columnsStr := strings.Split(t.Comment, ";")
+
+	for _, c := range columnsStr {
+		if strings.HasPrefix(c, "c.") {
+			cSpace := strings.Split(c, " ")
+			if len(cSpace) < 2 {
+				panic(fmt.Sprintf("drivers: sqlboiler invalid table comment format for additional c. columns"))
+			}
+			columnName := cSpace[0][2:]
+			columnType := cSpace[1]
+
+			cols = append(cols, Column{
+				Name: columnName,
+				Type: columnType,
+			})
 		}
 	}
 
