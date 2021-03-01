@@ -641,11 +641,11 @@ func CountExpr(column agrExp, as string) QueryMod {
 	return AggregateExpr("COUNT", column, as)
 }
 
-type fieldWhere interface {
+type FieldWhere interface {
 	GetField() string
 }
 
-func WhereEqColumns(column, column2 fieldWhere) QueryMod {
+func WhereEqColumns(column, column2 FieldWhere) QueryMod {
 	return Where(fmt.Sprintf("%s = %s", column.GetField(), column2.GetField()))
 }
 
